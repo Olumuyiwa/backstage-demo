@@ -8,20 +8,20 @@ on:
 
 jobs:
 
-  build:
-    runs-on: ubuntu-latest
+  # build:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
 
-      - name: Set Up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20 
+  #     - name: Set Up Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20 
       
-      - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+  #     - name: Install Dependencies
+  #       run: yarn install --frozen-lockfile
 
       # - name: Compile TypeScript
       #   run: yarn tsc
@@ -66,10 +66,21 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20 
+      
+      - name: Install Dependencies
+        run: |
+         yarn install --frozen-lockfile
+         yarn global add @backstage/cli
+         ls -l node_modules/.bin/backstage-cli
         
       - name: Build Backstage App
         run: yarn build:backend --config app-config.production.yaml
-        
+
       # Authenticate with Google Cloud
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v1
