@@ -26,8 +26,7 @@ jobs:
       # - name: Compile TypeScript
       #   run: yarn tsc
 
-      - name: Build Backstage App
-        run: yarn build:backend --config app-config.production.yaml
+
 
   validate:
     runs-on: ubuntu-latest
@@ -40,7 +39,7 @@ jobs:
       - name: Set Up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
@@ -67,7 +66,10 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
+        
+      - name: Build Backstage App
+        run: yarn build:backend --config app-config.production.yaml
+        
       # Authenticate with Google Cloud
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v1
@@ -85,6 +87,8 @@ jobs:
       # Build and Push Docker Image
       - name: Build and Push Docker Image
         run: |
+          ls -l  # Debugging: List files in the workspace
+          pwd
           docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backstage/backstage-app:latest .
           docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backstage/backstage-app:latest
 
