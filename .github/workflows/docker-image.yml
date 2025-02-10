@@ -81,7 +81,9 @@ jobs:
       - name: Build Backstage App
         # run: yarn build:backend --config app-config.production.yaml
         run: |
-          run: ls -l packages/backend/
+          pwd
+          ls -l packages/backend/
+          ls -l packages/backend/app-config.production.yaml
           yarn build:backend --config ../app-config.production.yaml
 
 
