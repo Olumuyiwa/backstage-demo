@@ -83,9 +83,8 @@ jobs:
         run: |
           pwd
           ls -l packages/backend/
-          ls -l packages/backend/
-          ls -l ../../app-config.production.yaml
-          yarn build:backend --config ../../app-config.production.yaml
+          ls -l 
+          yarn build:backend --config app-config.production.yaml
 
       # Authenticate with Google Cloud
       - name: Authenticate with Google Cloud
