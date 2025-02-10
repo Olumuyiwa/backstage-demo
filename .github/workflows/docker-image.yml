@@ -99,7 +99,7 @@ jobs:
 
       - name: Build Backstage App
         run: |
-          yarn build:backend --config app-config.production.yaml
+          # yarn build:backend --config app-config.production.yaml
           yarn build:all
 
       # Authenticate with Google Cloud
