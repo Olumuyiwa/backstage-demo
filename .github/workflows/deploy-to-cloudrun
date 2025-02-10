@@ -6,7 +6,7 @@ on:
       - main  # Change to your deployment branch
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
