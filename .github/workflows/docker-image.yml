@@ -9,10 +9,80 @@ on:
 jobs:
 
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18 
+      
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Compile TypeScript
+        run: yarn tsc
+
+      - name: Build Backstage App
+        run: yarn build:backend --config app-config.production.yaml
+
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+          # Static Code Analysis: Linting and Formatting
+      - name: Run ESLint
+        run: yarn eslint --max-warnings=0 . || true
+
+      - name: Run Prettier Check
+        run: yarn prettier --check . || true
+
+      # SonarCloud Analysis (Optional - Requires SonarCloud Setup)
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
+          projectBaseDir: "."
+        continue-on-error: true  # Allow pipeline to continue even if Sonar fails
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Authenticate with Google Cloud
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set Up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for Google Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+
+      # Build and Push Docker Image
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backstage/backstage-app:latest .
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backstage/backstage-app:latest
+
+      # Deploy to Cloud Run
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy backstage-app \
+            --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backstage/backstage-app:latest \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --port=7007
+
+      # Display the Cloud Run Service URL
+      - name: Show Cloud Run URL
+        run: gcloud run services describe backstage-app --region=us-central1 --format='value(status.url)'
