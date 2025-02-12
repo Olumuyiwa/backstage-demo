@@ -85,17 +85,18 @@ jobs:
           ls -l
           echo "Checking backend directory..."
           ls -l packages/backend/
-      
+            
       - name: Ensure Config File Exists
         run: |
           if [ ! -f "app-config.production.yaml" ]; then
             echo "app-config.production.yaml is missing! Creating a default one..."
-            cat <<EOT >> app-config.production.yaml
-            # Add default production config here if needed
+            cat <<EOT > app-config.production.yaml
+           # Add default production config here if needed
             EOT
           else
             echo "app-config.production.yaml found!"
           fi
+
 
       - name: Build Backstage App
         run: |
