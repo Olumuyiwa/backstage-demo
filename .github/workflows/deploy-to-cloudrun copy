@@ -1,0 +1,48 @@
+name: Deploy Backstage to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - develop  # Change to your deployment branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Build Docker Image
+        run: |
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backstage/backstage-app:latest .
+
+      - name: Push Docker Image
+        run: |
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backstage/backstage-app:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy backstage-app \
+            --image=us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backstage/backstage-app:latest \
+            --platform=managed \
+            --region=us-central1 \
+            --allow-unauthenticated \
+            --port=7007
+
+      - name: Show Cloud Run URL
+        run: |
+          gcloud run services describe backstage-app --region=us-central1 --format='value(status.url)'

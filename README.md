@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # backstage-standalone
 
 
@@ -100,8 +100,8 @@ This is your newly scaffolded Backstage App, Good Luck!
 To start the app, run:
 
 ```sh
-yarn install
-yarn dev
+yarn install # to install dependencies
+yarn dev # to run the app locally
 ```
 # bike-sharing-project
->>>>>>> e027cfe (first commit)
+
