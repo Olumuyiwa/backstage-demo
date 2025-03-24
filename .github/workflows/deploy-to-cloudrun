@@ -3,7 +3,7 @@ name: Deploy Backstage to Google Cloud Run
 on:
   push:
     branches:
-      - main  # Change to your deployment branch
+      - master  # Change to your deployment branch
 
 jobs:
   build:
