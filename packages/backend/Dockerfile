@@ -1,10 +1,9 @@
 # Stage 1: Build stage
-FROM node:20-bullseye-slim as build
+FROM node:20-bullseye-slim  as build
 
 # Install necessary dependencies for native modules
 RUN apt-get update && apt-get install -y \
-    python3 g++ make build-essential libsqlite3-dev ca-certificates curl git && \
-    apt-get install -y --fix-missing git || (sleep 10 && apt-get install -y --fix-missing git) && \
+    python3 g++ make build-essential libsqlite3-dev ca-certificates curl && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -13,19 +12,26 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 
 # Install dependencies
-RUN yarn install --frozen-lockfile --network-timeout 300000 || yarn install --network-timeout 300000 && rm -rf "$(yarn cache dir)"
+# Only install the necessary production dependencies
+RUN yarn install --production --frozen-lockfile --network-timeout 300000 && \
+    rm -rf "$(yarn cache dir)" && \
+    rm -rf /app/tests /app/docs /app/.git
+
 
 # Copy the entire project into the container
 COPY . .
 
 # Stage 2: Runtime stage
-FROM node:20-bullseye-slim
+FROM node:20-bullseye-slim  as runtime
 
 # Set the working directory in the container
 WORKDIR /app
 
 # Copy necessary files from the build stage
 COPY --from=build /app /app
+
+# Remove unnecessary files to reduce image size
+RUN rm -rf /app/tests /app/docs /app/.git /app/.github
 
 # Copy the repo skeleton to avoid unnecessary cache invalidation
 COPY --from=build /app/yarn.lock /app/package.json /app/packages/backend/dist/skeleton.tar.gz ./
@@ -47,11 +53,14 @@ USER node
 # Set the environment variable for production
 ENV NODE_ENV=production
 
+# Set the environment variable for the app to listen on port 8080
+ENV BACKSTAGE_APP_PORT=8080
+
 # Expose Backstage default port
-EXPOSE 7007
+EXPOSE 8080
 
 # Set environment variables for Backstage & Database
-ENV BACKSTAGE_APP_PORT=7007
+ENV BACKSTAGE_APP_PORT=8080
 ENV POSTGRES_HOST=postgres
 ENV POSTGRES_PORT=5432
 ENV POSTGRES_USER=backstage

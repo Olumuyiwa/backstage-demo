@@ -202,6 +202,9 @@ backend:
 ---
 
 ## **Step 8: Build and Push the Docker Image to Google Container Registry**
+
+Prerequisite : install gcloud by following this link - https://cloud.google.com/sdk/docs/install#mac 
+
 1️⃣ Authenticate with GCP:
 
 ```sh
@@ -212,13 +215,65 @@ gcloud config set project YOUR_PROJECT_ID
 2️⃣ Build and tag the Docker image:
 
 ```sh
+
 docker build -t gcr.io/YOUR_PROJECT_ID/backstage .
+
+OR 
+
+docker build -t gcr.io/YOUR_PROJECT_ID/backstage -f packages/backend/Dockerfile .
+
+E.g. 
+
+docker build -t gcr.io/northern-cooler-448817-b0/backstage -f packages/backend/Dockerfile .
+
+or 
+
+docker build --platform linux/amd64 -t gcr.io/northern-cooler-448817-b0/backstage  -f packages/backend/Dockerfile .
+
 ```
 
 3️⃣ Push the image to Google Container Registry:
 
+Prerequisites 
+
+```shell
+
+gcloud projects add-iam-policy-binding northern-cooler-448817-b0 \
+  --member="user:your-email@gmail.com" \
+  --role="roles/artifactregistry.admin" \
+  --role="roles/artifactregistry.createOnPushRepoAdmin" \
+  --role="roles/artifactregistry.writer" \
+  --role="roles/cloudbuild.editor" \
+  --role="roles/cloudbuild.serviceAgent" \
+  --role="roles/run.admin" \
+  --role="roles/iam.serviceAccountUser" \
+  --role="roles/serviceusage.serviceUsageAdmin" \
+  --role="roles/storage.admin" \
+  --role="roles/viewer"
+
+  e.g 
+
+  gcloud projects add-iam-policy-binding northern-cooler-448817-b0 \
+  --member="user:olfo20250124@gmail.com" \
+  --role="roles/artifactregistry.admin" \
+  --role="roles/artifactregistry.createOnPushRepoAdmin" \
+  --role="roles/artifactregistry.writer" \
+  --role="roles/cloudbuild.editor" \
+  --role="roles/cloudbuild.serviceAgent" \
+  --role="roles/run.admin" \
+  --role="roles/iam.serviceAccountUser" \
+  --role="roles/serviceusage.serviceUsageAdmin" \
+  --role="roles/storage.admin" \
+  --role="roles/viewer"
+
+```
+
 ```sh
 docker push gcr.io/YOUR_PROJECT_ID/backstage
+
+E.g
+
+docker push gcr.io/northern-cooler-448817-b0/backstage
 ```
 
 ---
@@ -251,3 +306,186 @@ Copy the **Cloud Run URL** from the terminal and open it in your browser.
 ✅ Built and deployed Backstage to **Google Cloud Run**.  
 
 🚀 **Your Backstage app is now running in the cloud!** 🚀  
+
+Some Docker and gcloud commands that were ru successfully
+
+```bash
+
+# list the regions
+gcloud run regions list
+
+# deploy on gloud run 
+gcloud run deploy backstage \
+--image gcr.io/northern-cooler-448817-b0/backstage \
+--platform managed \
+--region us-central1 \
+--allow-unauthenticated \
+--set-env-vars POSTGRES_HOST=35.202.116.158,POSTGRES_PORT=5432,POSTGRES_USER=backstage,POSTGRES_PASSWORD=your-secure-password,POSTGRES_DB=backstage_plugin_app
+
+# docker push to gcp 
+docker push gcr.io/northern-cooler-448817-b0/backstage
+
+# check the type of architecture for the image generated 
+docker inspect gcr.io/northern-cooler-448817-b0/backstage:latest 
+
+# check the type of architecture for the image generated 
+docker inspect gcr.io/northern-cooler-448817-b0/backstage:latest |  grep -i arch
+
+# most gcp images may work with linux/amd64 platforms
+docker build --platform linux/amd64 -t gcr.io/northern-cooler-448817-b0/backstage  -f packages/backend/Dockerfile .
+
+# docker push to gcp 
+docker push gcr.io/northern-cooler-448817-b0/backstage
+
+# deploy on gloud run 
+gcloud run deploy backstage \
+--image gcr.io/northern-cooler-448817-b0/backstage \
+--platform managed \
+--region us-central1 \
+--allow-unauthenticated \
+--set-env-vars POSTGRES_HOST=35.202.116.158,POSTGRES_PORT=5432,POSTGRES_USER=backstage,POSTGRES_PASSWORD=your-secure-password,POSTGRES_DB=backstage_plugin_app,BACKSTAGE_BASE_URL=https://backstage-54738136311.us-central1.run.app
+
+
+```
+# Using Docker compose to run both postgres and backstage 
+Here's the updated Dockerfile with the necessary fixes for running Backstage with PostgreSQL in production. It includes:  
+
+- ✅ **Database environment variables**  
+- ✅ **Ensuring PostgreSQL service is reachable**  
+- ✅ **Using Docker best practices**  
+
+### **Updated Dockerfile**
+```dockerfile
+# Stage 1: Build stage
+FROM node:20-bullseye-slim as build
+
+# Install necessary dependencies for native modules
+RUN apt-get update && apt-get install -y \
+    python3 g++ make build-essential libsqlite3-dev ca-certificates curl git && \
+    apt-get install -y --fix-missing git || (sleep 10 && apt-get install -y --fix-missing git) && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy package.json and yarn.lock to install dependencies
+COPY package.json yarn.lock ./
+
+# Install dependencies
+RUN yarn install --frozen-lockfile --network-timeout 300000 || yarn install --network-timeout 300000 && rm -rf "$(yarn cache dir)"
+
+# Copy the entire project into the container
+COPY . .
+
+# Stage 2: Runtime stage
+FROM node:20-bullseye-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy necessary files from the build stage
+COPY --from=build /app /app
+
+# Copy the repo skeleton to avoid unnecessary cache invalidation
+COPY --from=build /app/yarn.lock /app/package.json /app/packages/backend/dist/skeleton.tar.gz ./
+RUN tar xzf skeleton.tar.gz && rm skeleton.tar.gz
+
+# Install production dependencies
+RUN yarn install --frozen-lockfile --production --network-timeout 300000 && rm -rf "$(yarn cache dir)"
+
+# Copy the backend bundle and configuration files
+COPY --from=build /app/packages/backend/dist/bundle.tar.gz /app/app-config*.yaml ./
+RUN tar xzf bundle.tar.gz && rm bundle.tar.gz
+
+# Set permissions for the application directory
+RUN chown -R node:node /app
+
+# Switch to the 'node' user for least-privilege operation
+USER node
+
+# Set the environment variable for production
+ENV NODE_ENV=production
+
+# Expose Backstage default port
+EXPOSE 7007
+
+# Set environment variables for Backstage & Database
+ENV BACKSTAGE_APP_PORT=7007
+ENV POSTGRES_HOST=postgres
+ENV POSTGRES_PORT=5432
+ENV POSTGRES_USER=backstage
+ENV POSTGRES_PASSWORD=backstage
+ENV POSTGRES_DB=backstage_plugin_app
+
+# Define the entrypoint to run the backend
+ENTRYPOINT ["node", "packages/backend", "--config", "app-config.yaml", "--config", "app-config.production.yaml"]
+```
+
+---
+
+### **Next Steps**
+1. **Modify `app-config.production.yaml` to use the environment variables:**
+```yaml
+backend:
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: ${POSTGRES_DB}
+```
+
+2. **Run PostgreSQL and Backstage using Docker Compose** (`docker-compose.yml`):
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: backstage-db
+    restart: always
+    environment:
+      POSTGRES_USER: backstage
+      POSTGRES_PASSWORD: backstage
+      POSTGRES_DB: backstage_plugin_app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backstage:
+    build: .
+    container_name: backstage-app
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: backstage
+      POSTGRES_PASSWORD: backstage
+      POSTGRES_DB: backstage_plugin_app
+    ports:
+      - "7007:7007"
+
+volumes:
+  postgres_data:
+```
+
+3. **Start the services**:
+```bash
+docker-compose up --build
+```
+
+---
+
+### **Key Fixes in the Dockerfile**
+✅ **Added PostgreSQL environment variables**  
+✅ **Ensured database connection is configurable via `app-config.production.yaml`**  
+✅ **Uses `node` user for security**  
+✅ **Ensures proper installation of dependencies**  
+
+Now, Backstage should start successfully inside Docker and connect to PostgreSQL. 🚀 Let me know if you need more tweaks!
+
+# Using github to push to google cloud run
