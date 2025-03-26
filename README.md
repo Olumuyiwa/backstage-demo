@@ -1,107 +1,253 @@
 
-# backstage-standalone
+# **🚀 Step-by-Step Guide to Setting Up Backstage with Docker and Deploying to GCP**
+This guide will help you:
+1. **Install Backstage** as a standalone application.
+2. **Run Backstage with Docker** using **PostgreSQL** as the database.
+3. **Deploy Backstage to GCP**.
 
+---
 
+## **📌 Prerequisites**
+Before getting started, make sure you have:
+✅ **Docker & Docker Compose** installed → [Install Docker](https://docs.docker.com/get-docker/)  
+✅ **Node.js (v18 or later) & Yarn** installed → [Install Node.js & Yarn](https://nodejs.org/)  
+✅ **GCP Account & Project Setup** → [Sign up for GCP](https://cloud.google.com/)  
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.com/backstage-playground/backstage-standalone.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://gitlab.com/backstage-playground/backstage-standalone/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
-=======
-# [Backstage](https://backstage.io)
-
-This is your newly scaffolded Backstage App, Good Luck!
-
-To start the app, run:
+# **🛠️ Part 1: Setup Backstage Locally with PostgreSQL and Docker**
+## **Step 1: Create a New Backstage App**
+First, create a new Backstage project:
 
 ```sh
-yarn install # to install dependencies
-yarn dev # to run the app locally
+npx @backstage/create-app
 ```
-# bike-sharing-project
 
+Navigate into the project:
+
+```sh
+cd my-backstage-app
+```
+
+---
+
+## **Step 2: Configure PostgreSQL as the Database**
+By default, Backstage uses SQLite. To switch to PostgreSQL:
+
+1️⃣ Install PostgreSQL dependencies:
+
+```sh
+yarn add pg pg-hstore
+```
+
+2️⃣ Modify `app-config.yaml` to use PostgreSQL:
+
+Edit the `packages/backend/app-config.yaml` file:
+
+```yaml
+# Use PostgreSQL instead of SQLite
+backend:
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: ${POSTGRES_DB}
+```
+
+---
+
+## **Step 3: Create a Dockerfile for Backstage**
+Inside `packages/backend/`, create a **Dockerfile**:
+
+```dockerfile
+# Stage 1: Build stage
+FROM node:20-bullseye-slim as build
+
+# Install necessary dependencies
+RUN apt-get update && apt-get install -y \
+    python3 g++ make build-essential libsqlite3-dev ca-certificates curl git && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy package.json and yarn.lock
+COPY package.json yarn.lock ./
+
+# Install dependencies
+RUN yarn install --frozen-lockfile --production
+
+# Copy the entire project
+COPY . .
+
+# Build Backstage
+RUN yarn tsc && yarn build:backend
+
+# Stage 2: Runtime stage
+FROM node:20-bullseye-slim
+
+WORKDIR /app
+
+# Copy necessary files from the build stage
+COPY --from=build /app /app
+
+# Set permissions
+RUN chown -R node:node /app
+
+USER node
+ENV NODE_ENV=production
+
+# Expose Backstage port
+EXPOSE 7007
+
+# Define the entrypoint
+ENTRYPOINT ["node", "packages/backend", "--config", "app-config.yaml"]
+```
+
+---
+
+## **Step 4: Create a Docker Compose File**
+In the root of your project, create `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: backstage-db
+    restart: always
+    environment:
+      POSTGRES_USER: backstage
+      POSTGRES_PASSWORD: backstage
+      POSTGRES_DB: backstage_plugin_app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backstage:
+    build: .
+    container_name: backstage-app
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: backstage
+      POSTGRES_PASSWORD: backstage
+      POSTGRES_DB: backstage_plugin_app
+    ports:
+      - "7007:7007"
+
+volumes:
+  postgres_data:
+```
+
+---
+
+## **Step 5: Build and Run Backstage in Docker**
+Run the following command:
+
+```sh
+docker-compose up --build
+```
+
+✅ After a few minutes, open your browser and go to:
+
+```
+http://localhost:7007
+```
+
+🎉 **Backstage is now running locally with PostgreSQL!**  
+
+---
+
+# **☁️ Part 2: Deploy Backstage to GCP**
+Now, let's deploy Backstage to **Google Cloud Run** using **Cloud SQL (PostgreSQL)**.
+
+---
+
+## **Step 6: Create a Cloud SQL Instance**
+1️⃣ Go to **Google Cloud Console** → **SQL** → **Create Instance**  
+2️⃣ Select **PostgreSQL** and choose a version (e.g., **PostgreSQL 15**).  
+3️⃣ Set:
+   - **Instance ID:** `backstage-db`
+   - **Username:** `backstage`
+   - **Password:** `your-secure-password`
+   - **Database Name:** `backstage_plugin_app`
+4️⃣ Enable **Public IP Access** (or use a private VPC if needed).  
+5️⃣ Click **Create** and wait for it to be ready.
+
+---
+
+## **Step 7: Configure Backstage for Cloud SQL**
+Modify `app-config.production.yaml`:
+
+```yaml
+backend:
+  database:
+    client: pg
+    connection:
+      host: your-cloud-sql-instance-ip
+      port: 5432
+      user: backstage
+      password: your-secure-password
+      database: backstage_plugin_app
+```
+
+---
+
+## **Step 8: Build and Push the Docker Image to Google Container Registry**
+1️⃣ Authenticate with GCP:
+
+```sh
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+```
+
+2️⃣ Build and tag the Docker image:
+
+```sh
+docker build -t gcr.io/YOUR_PROJECT_ID/backstage .
+```
+
+3️⃣ Push the image to Google Container Registry:
+
+```sh
+docker push gcr.io/YOUR_PROJECT_ID/backstage
+```
+
+---
+
+## **Step 9: Deploy Backstage to Cloud Run**
+1️⃣ Deploy the Backstage app:
+
+```sh
+gcloud run deploy backstage \
+  --image gcr.io/YOUR_PROJECT_ID/backstage \
+  --platform managed \
+  --region YOUR_REGION \
+  --allow-unauthenticated \
+  --set-env-vars POSTGRES_HOST=your-cloud-sql-instance-ip,POSTGRES_PORT=5432,POSTGRES_USER=backstage,POSTGRES_PASSWORD=your-secure-password,POSTGRES_DB=backstage_plugin_app
+```
+
+2️⃣ Wait for the deployment to complete.  
+
+✅ **Your Backstage app is now running on GCP!** 🎉  
+
+Copy the **Cloud Run URL** from the terminal and open it in your browser.
+
+---
+
+# **🎯 Summary**
+✅ Installed Backstage and configured it for PostgreSQL.  
+✅ Created a **Dockerfile** and **docker-compose.yml**.  
+✅ Ran Backstage **locally** using Docker and PostgreSQL.  
+✅ Set up **Cloud SQL (PostgreSQL)** on GCP.  
+✅ Built and deployed Backstage to **Google Cloud Run**.  
+
+🚀 **Your Backstage app is now running in the cloud!** 🚀  
