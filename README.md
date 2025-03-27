@@ -120,9 +120,9 @@ services:
     container_name: backstage-db
     restart: always
     environment:
-      POSTGRES_USER: backstage
-      POSTGRES_PASSWORD: backstage
-      POSTGRES_DB: backstage_plugin_app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
@@ -137,9 +137,9 @@ services:
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
-      POSTGRES_USER: backstage
-      POSTGRES_PASSWORD: backstage
-      POSTGRES_DB: backstage_plugin_app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
     ports:
       - "7007:7007"
 
@@ -178,7 +178,7 @@ Now, let's deploy Backstage to **Google Cloud Run** using **Cloud SQL (PostgreSQ
    - **Instance ID:** `backstage-db`
    - **Username:** `backstage`
    - **Password:** `your-secure-password`
-   - **Database Name:** `backstage_plugin_app`
+   - **Database Name:** `postgres`
 4️⃣ Enable **Public IP Access** (or use a private VPC if needed).  
 5️⃣ Click **Create** and wait for it to be ready.
 
@@ -196,7 +196,7 @@ backend:
       port: 5432
       user: backstage
       password: your-secure-password
-      database: backstage_plugin_app
+      database: postgres
 ```
 
 ---
@@ -287,7 +287,7 @@ gcloud run deploy backstage \
   --platform managed \
   --region YOUR_REGION \
   --allow-unauthenticated \
-  --set-env-vars POSTGRES_HOST=your-cloud-sql-instance-ip,POSTGRES_PORT=5432,POSTGRES_USER=backstage,POSTGRES_PASSWORD=your-secure-password,POSTGRES_DB=backstage_plugin_app
+  --set-env-vars POSTGRES_HOST=your-cloud-sql-instance-ip,POSTGRES_PORT=5432,POSTGRES_USER=backstage,POSTGRES_PASSWORD=your-secure-password,POSTGRES_DB=postgres
 ```
 
 2️⃣ Wait for the deployment to complete.  
@@ -320,7 +320,7 @@ gcloud run deploy backstage \
 --platform managed \
 --region us-central1 \
 --allow-unauthenticated \
---set-env-vars POSTGRES_HOST=35.202.116.158,POSTGRES_PORT=5432,POSTGRES_USER=backstage,POSTGRES_PASSWORD=your-secure-password,POSTGRES_DB=backstage_plugin_app
+--set-env-vars POSTGRES_HOST=35.202.116.158,POSTGRES_PORT=5432,POSTGRES_USER=backstage,POSTGRES_PASSWORD=your-secure-password,POSTGRES_DB=postgres
 
 # docker push to gcp 
 docker push gcr.io/northern-cooler-448817-b0/backstage
@@ -343,7 +343,7 @@ gcloud run deploy backstage \
 --platform managed \
 --region us-central1 \
 --allow-unauthenticated \
---set-env-vars POSTGRES_HOST=35.202.116.158,POSTGRES_PORT=5432,POSTGRES_USER=backstage,POSTGRES_PASSWORD=your-secure-password,POSTGRES_DB=backstage_plugin_app,BACKSTAGE_BASE_URL=https://backstage-54738136311.us-central1.run.app
+--set-env-vars POSTGRES_HOST=35.202.116.158,POSTGRES_PORT=5432,POSTGRES_USER=backstage,POSTGRES_PASSWORD=your-secure-password,POSTGRES_DB=postgres,BACKSTAGE_BASE_URL=https://backstage-54738136311.us-central1.run.app
 
 
 ```
@@ -414,7 +414,7 @@ ENV POSTGRES_HOST=postgres
 ENV POSTGRES_PORT=5432
 ENV POSTGRES_USER=backstage
 ENV POSTGRES_PASSWORD=backstage
-ENV POSTGRES_DB=backstage_plugin_app
+ENV POSTGRES_DB=postgres
 
 # Define the entrypoint to run the backend
 ENTRYPOINT ["node", "packages/backend", "--config", "app-config.yaml", "--config", "app-config.production.yaml"]
@@ -448,7 +448,7 @@ services:
     environment:
       POSTGRES_USER: backstage
       POSTGRES_PASSWORD: backstage
-      POSTGRES_DB: backstage_plugin_app
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
@@ -465,7 +465,7 @@ services:
       POSTGRES_PORT: 5432
       POSTGRES_USER: backstage
       POSTGRES_PASSWORD: backstage
-      POSTGRES_DB: backstage_plugin_app
+      POSTGRES_DB: postgres
     ports:
       - "7007:7007"
 

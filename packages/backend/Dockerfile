@@ -1,3 +1,6 @@
+# This is for the docker image of the Backstage backend
+# This Dockerfile is a multi-stage build that builds the backend and then runs it in a separate container
+
 # Stage 1: Build stage
 FROM node:20-bullseye-slim  as build
 
@@ -16,7 +19,6 @@ COPY package.json yarn.lock ./
 RUN yarn install --production --frozen-lockfile --network-timeout 300000 && \
     rm -rf "$(yarn cache dir)" && \
     rm -rf /app/tests /app/docs /app/.git
-
 
 # Copy the entire project into the container
 COPY . .
@@ -59,13 +61,15 @@ ENV BACKSTAGE_APP_PORT=8080
 # Expose Backstage default port
 EXPOSE 8080
 
+# move this to docker-compose
 # Set environment variables for Backstage & Database
-ENV BACKSTAGE_APP_PORT=8080
-ENV POSTGRES_HOST=postgres
-ENV POSTGRES_PORT=5432
-ENV POSTGRES_USER=backstage
-ENV POSTGRES_PASSWORD=backstage
-ENV POSTGRES_DB=backstage_plugin_app
+# ENV BACKSTAGE_APP_PORT=8081
+# ENV BACKSTAGE_BASE_URL=http://localhost:${BACKSTAGE_APP_PORT}
+# ENV POSTGRES_HOST=backstage-app
+# ENV POSTGRES_PORT=5433
+# ENV POSTGRES_USER=backstage
+# ENV POSTGRES_PASSWORD=backstage
+# ENV POSTGRES_DB=postgres
 
 # Define the entrypoint to run the backend
 ENTRYPOINT ["node", "packages/backend", "--config", "app-config.yaml", "--config", "app-config.production.yaml"]

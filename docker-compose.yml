@@ -1,18 +1,23 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
     container_name: backstage-db
     restart: always
     environment:
-      POSTGRES_USER: backstage
-      POSTGRES_PASSWORD: backstage
-      POSTGRES_DB: backstage_plugin_app
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
     ports:
-      - "5432:5432"
+      - "5432:5432"  # Expose PostgreSQL on port 5432 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "backstage", "-d", "postgres"]
+      interval: 5s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
 
   backstage:
     build:
@@ -23,16 +28,15 @@ services:
     depends_on:
       - postgres
     environment:
-      BACKSTAGE_BASE_URL: http://localhost:7007
-      PORT: 7007
-      # DATABASE_URL: postgres://backstage:backstage@postgres:5432/backstage_plugin_app
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: backstage
-      POSTGRES_PASSWORD: backstage
-      POSTGRES_DB: backstage_plugin_app
+      PORT: ${PORT}
+      BACKSTAGE_BASE_URL: ${BACKSTAGE_BASE_URL}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "7007:7007"  # Expose port 8080 locally or default 7007
+      - "${PORT}:${PORT}"  # Expose the app on the port defined in your .env (e.g., 8080)
 
 volumes:
   postgres_data:
