@@ -1,33 +1,36 @@
-# This is for the docker image of the Backstage backend
-# This Dockerfile is a multi-stage build that builds the backend and then runs it in a separate container
+# Stage 1: Build Stage
+FROM node:20-alpine AS build
 
-# Stage 1: Build stage
-FROM node:20-bullseye-slim  as build
-
-# Install necessary dependencies for native modules
-RUN apt-get update && apt-get install -y \
-    python3 g++ make build-essential libsqlite3-dev ca-certificates curl && \
-    rm -rf /var/lib/apt/lists/*
+# Install dependencies for native modules
+RUN apk add --no-cache \
+    python3 g++ make sqlite-dev ca-certificates curl
 
 WORKDIR /app
 
-# Copy package.json and yarn.lock to install dependencies
+# Copy package.json and yarn.lock first to leverage caching
 COPY package.json yarn.lock ./
 
-# Install dependencies
-# Only install the necessary production dependencies
+# Install dependencies (only production ones)
 RUN yarn install --production --frozen-lockfile --network-timeout 300000 && \
     rm -rf "$(yarn cache dir)" && \
     rm -rf /app/tests /app/docs /app/.git
 
-# Copy the entire project into the container
+# Copy only necessary files
 COPY . .
 
-# Stage 2: Runtime stage
-FROM node:20-bullseye-slim  as runtime
+# Build the Backstage backend
+# RUN yarn tsc && yarn build
 
-# Set the working directory in the container
+# Stage 2: Runtime Stage
+FROM node:20-alpine AS runtime
+
 WORKDIR /app
+
+# # Copy built backend from the build stage
+# COPY --from=build /app/packages/backend/dist ./packages/backend/dist
+# COPY --from=build /app/node_modules ./node_modules
+# COPY --from=build /app/app-config*.yaml ./
+# COPY --from=build /app/package.json ./
 
 # Copy necessary files from the build stage
 COPY --from=build /app /app
@@ -47,29 +50,42 @@ COPY --from=build /app/packages/backend/dist/bundle.tar.gz /app/app-config*.yaml
 RUN tar xzf bundle.tar.gz && rm bundle.tar.gz
 
 # Set permissions for the application directory
-RUN chown -R node:node /app
+RUN chown -R node:node /app && chmod -R 755 /app
 
-# Switch to the 'node' user for least-privilege operation
+# Use non-root user
 USER node
 
-# Set the environment variable for production
+# Set environment variables
 ENV NODE_ENV=production
-
-# Set the environment variable for the app to listen on port 8080
 ENV BACKSTAGE_APP_PORT=8080
 
 # Expose Backstage default port
 EXPOSE 8080
 
-# move this to docker-compose
-# Set environment variables for Backstage & Database
-# ENV BACKSTAGE_APP_PORT=8081
-# ENV BACKSTAGE_BASE_URL=http://localhost:${BACKSTAGE_APP_PORT}
-# ENV POSTGRES_HOST=backstage-app
-# ENV POSTGRES_PORT=5433
-# ENV POSTGRES_USER=backstage
-# ENV POSTGRES_PASSWORD=backstage
-# ENV POSTGRES_DB=postgres
-
-# Define the entrypoint to run the backend
-ENTRYPOINT ["node", "packages/backend", "--config", "app-config.yaml", "--config", "app-config.production.yaml"]
+# Run the Backstage application
+CMD ["node", "packages/backend", "--config", "app-config.yaml", "--config", "app-config.production.yaml"]
+ 
+#  The Dockerfile is divided into two stages: 
+ 
+#  Build Stage:  This stage is responsible for installing the necessary dependencies, building the Backstage backend, and copying the built backend to the runtime stage. 
+#  Runtime Stage:  This stage is responsible for running the Backstage backend. 
+ 
+#  The  build  stage uses the  node:20-alpine  image as the base image. It installs the necessary dependencies for native modules, copies the  package.json  and  yarn.lock  files, installs the production dependencies, and builds the Backstage backend. 
+#  The  runtime  stage uses the  node:20-alpine  image as the base image. It copies the built backend from the  build  stage, the  node_modules  directory, the  app-config*.yaml  files, and the  package.json  file. It sets the necessary environment variables and runs the Backstage application. 
+#  The  Dockerfile  is now ready. 
+#  Step 4: Build the Docker Image 
+#  To build the Docker image, run the following command: 
+#  docker build -t backstage-app .
+ 
+#  This command builds the Docker image with the name  backstage-app . 
+#  Step 5: Run the Docker Container 
+#  To run the Docker container, run the following command: 
+#  docker run -d -p 8080:8080 backstage-app
+ 
+#  This command runs the Docker container in detached mode and maps port  8080  of the host machine to port  8080  of the container. 
+#  Step 6: Access the Backstage Application 
+#  To access the Backstage application, open a web browser and navigate to  http://localhost:8080 . 
+#  Conclusion 
+#  You now have a Backstage application running in a Docker container. You can now customize the application by adding plugins, components, and more. 
+#  Happy coding! 
+#  Peer Review Contributions by:  Lalithnarayan C

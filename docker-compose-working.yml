@@ -6,9 +6,9 @@
 #     environment:
 #       POSTGRES_USER: backstage
 #       POSTGRES_PASSWORD: backstage
-#       POSTGRES_DB: postgres
+#       POSTGRES_DB: ${POSTGRES_DOCKER_DB}
 #     ports:
-#       - "5432:5432"  # Expose PostgreSQL on port 5432 
+#       - "${POSTGRES_DOCKER_PORT}:${POSTGRES_DOCKER_PORT}"  # Expose PostgreSQL on port 5432 
 #     volumes:
 #       - postgres_data:/var/lib/postgresql/data
 #     healthcheck:
@@ -28,15 +28,15 @@
 #       postgres:
 #         condition: service_healthy  # Wait for PostgreSQL to be healthy before starting
 #     environment:
-#       PORT: 8081
-#       BACKSTAGE_BASE_URL: http://localhost:8081
+#       PORT: ${BACKSTAGE_DOCKER_APP_PORT}
+#       BACKSTAGE_BASE_URL: http://localhost:${BACKSTAGE_DOCKER_APP_PORT}
 #       POSTGRES_HOST: backstage-db
-#       POSTGRES_PORT: 5432
+#       POSTGRES_PORT: ${POSTGRES_DOCKER_PORT}
 #       POSTGRES_USER: backstage
 #       POSTGRES_PASSWORD: backstage
-#       POSTGRES_DB: postgres
+#       POSTGRES_DB: ${POSTGRES_DOCKER_DB}
 #     ports:
-#       - "8081:8081"  # Expose the app on the port defined in .env
+#       - "${BACKSTAGE_DOCKER_APP_PORT}:${BACKSTAGE_DOCKER_APP_PORT}"  # Expose the app on the port defined in .env
 
 # volumes:
 #   postgres_data:
