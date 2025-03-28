@@ -4,12 +4,11 @@ services:
     container_name: backstage-db
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-
+      POSTGRES_USER: backstage
+      POSTGRES_PASSWORD: backstage
+      POSTGRES_DB: ${POSTGRES_DOCKER_DB}
     ports:
-      - "5432:5432"  # Expose PostgreSQL on port 5432 
+      - "${POSTGRES_DOCKER_PORT}:${POSTGRES_DOCKER_PORT}"  # Expose PostgreSQL on port 5432 
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,17 +25,18 @@ services:
     container_name: backstage-app
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy  # Wait for PostgreSQL to be healthy before starting
     environment:
-      PORT: ${PORT}
-      BACKSTAGE_BASE_URL: ${BACKSTAGE_BASE_URL}
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      PORT: ${BACKSTAGE_DOCKER_APP_PORT}
+      BACKSTAGE_BASE_URL: http://localhost:${BACKSTAGE_DOCKER_APP_PORT}
+      POSTGRES_HOST: backstage-db
+      POSTGRES_PORT: ${POSTGRES_DOCKER_PORT}
+      POSTGRES_USER: backstage
+      POSTGRES_PASSWORD: backstage
+      POSTGRES_DB: ${POSTGRES_DOCKER_DB}
     ports:
-      - "${PORT}:${PORT}"  # Expose the app on the port defined in your .env (e.g., 8080)
+      - "${BACKSTAGE_DOCKER_APP_PORT}:${BACKSTAGE_DOCKER_APP_PORT}"  # Expose the app on the port defined in .env
 
 volumes:
   postgres_data:
